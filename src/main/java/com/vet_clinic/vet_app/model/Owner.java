@@ -1,4 +1,4 @@
-package com.vet_app.model;
+package com.vet_clinic.vet_app.model;
 
 import java.sql.Timestamp;
 

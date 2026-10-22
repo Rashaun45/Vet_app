@@ -1,4 +1,4 @@
-package com.vet_app.model;
+package com.vet_clinic.vet_app.model;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -12,14 +12,14 @@ public class Pet {
     private String breed;
     private String sex;
     private Date dateOfBirth;
-    private BigDecimal weight;
+    private double weight;
     private String microchipId;
     private boolean active;
 
     public Pet() {
     }
 
-    public Pet(int petId, int ownerId, String name, String species, String breed, String sex, Date dateOfBirth, BigDecimal weight, String microchipId, boolean active)
+    public Pet(int petId, int ownerId, String name, String species, String breed, String sex, Date dateOfBirth, double weight, String microchipId, boolean active)
     {
         this.petId = petId;
         this.ownerId = ownerId;
@@ -90,11 +90,11 @@ public class Pet {
         this.dateOfBirth = dateOfBirth;
     }
 
-    public BigDecimal getWeight() {
+    public double getWeight() {
         return weight;
     }
 
-    public void setWeight(BigDecimal weight) {
+    public void setWeight(double weight) {
         this.weight = weight;
     }
 

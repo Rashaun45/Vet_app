@@ -1,4 +1,4 @@
-package com.vet_app.util;
+package com.vet_clinic.vet_app.util;
 
 import java.io.IOException;
 import java.util.logging.ConsoleHandler;

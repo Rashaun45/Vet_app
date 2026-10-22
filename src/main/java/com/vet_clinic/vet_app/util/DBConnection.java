@@ -1,4 +1,4 @@
-package com.vet_app.util;
+package com.vet_clinic.vet_app.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
