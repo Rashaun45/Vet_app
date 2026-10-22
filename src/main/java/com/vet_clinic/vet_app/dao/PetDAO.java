@@ -8,12 +8,11 @@ import java.util.List;
 
 public class PetDAO {
 
-    // INSERT: add a new pet and return the generated ID
     public int createPet(Pet p) throws SQLException {
         String sql = "INSERT INTO pet (owner_id, name, species, breed, sex, date_of_birth, weight, microchip_id, is_active) "
-                + "VALUES (?,?,?,?,?,?,?,?,?)";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, p.getOwnerId());
             ps.setString(2, p.getName());
             ps.setString(3, p.getSpecies());
@@ -24,61 +23,79 @@ public class PetDAO {
             ps.setString(8, p.getMicrochipId());
             ps.setBoolean(9, p.isActive());
             ps.executeUpdate();
-
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                return keys.next() ? keys.getInt(1) : -1;
             }
         }
-        return -1;
     }
 
-    // SELECT with a condition: all the pets that belong to one owner (multiple rows)
-    public List<Pet> findByOwnerId(int ownerId) throws SQLException {
-        List<Pet> result = new ArrayList<>();
-        String sql = "SELECT * FROM pet WHERE owner_id = ? ORDER BY pet_id";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, ownerId);
+    public Pet findById(int petId) throws SQLException {
+        String sql = "SELECT * FROM pet WHERE pet_id = ?";
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, petId);
             try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    Pet p = new Pet();
-                    p.setPetId(rs.getInt("pet_id"));
-                    p.setOwnerId(rs.getInt("owner_id"));
-                    p.setName(rs.getString("name"));
-                    p.setSpecies(rs.getString("species"));
-                    p.setBreed(rs.getString("breed"));
-                    p.setSex(rs.getString("sex"));
-                    p.setDateOfBirth(rs.getDate("date_of_birth"));
-                    p.setWeight(rs.getDouble("weight"));
-                    p.setMicrochipId(rs.getString("microchip_id"));
-                    p.setActive(rs.getBoolean("is_active"));
-                    result.add(p);
-                }
+                return rs.next() ? mapPet(rs) : null;
             }
         }
-        return result;
     }
 
-    // UPDATE: change a pet's weight (returns false if no pet was changed)
-    public boolean updateWeight(int petId, double newWeight) throws SQLException {
+    public List<Pet> findByOwnerId(int ownerId) throws SQLException {
+        return query("SELECT * FROM pet WHERE owner_id = ?", ownerId);
+    }
+
+    public List<Pet> findBySpecies(String species) throws SQLException {
+        return query("SELECT * FROM pet WHERE species = ?", species);
+    }
+
+    public List<Pet> getAllPets() throws SQLException {
+        return query("SELECT * FROM pet ORDER BY pet_id", null);
+    }
+
+    public boolean updateWeight(int petId, double weight) throws SQLException {
         String sql = "UPDATE pet SET weight = ? WHERE pet_id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setDouble(1, newWeight);
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setDouble(1, weight);
             ps.setInt(2, petId);
             return ps.executeUpdate() > 0;
         }
     }
 
-    // DELETE: remove a pet (returns false if no pet was removed)
     public boolean deletePet(int petId) throws SQLException {
         String sql = "DELETE FROM pet WHERE pet_id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, petId);
             return ps.executeUpdate() > 0;
         }
+    }
+
+    // shared helper for the SELECT methods above (param can be null, an Integer or a String)
+    private List<Pet> query(String sql, Object param) throws SQLException {
+        List<Pet> list = new ArrayList<>();
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            if (param != null) ps.setObject(1, param);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapPet(rs));
+            }
+        }
+        return list;
+    }
+
+    private Pet mapPet(ResultSet rs) throws SQLException {
+        Pet p = new Pet();
+        p.setPetId(rs.getInt("pet_id"));
+        p.setOwnerId(rs.getInt("owner_id"));
+        p.setName(rs.getString("name"));
+        p.setSpecies(rs.getString("species"));
+        p.setBreed(rs.getString("breed"));
+        p.setSex(rs.getString("sex"));
+        p.setDateOfBirth(rs.getDate("date_of_birth"));
+        p.setWeight(rs.getDouble("weight"));
+        p.setMicrochipId(rs.getString("microchip_id"));
+        p.setActive(rs.getBoolean("is_active"));
+        return p;
     }
 }
