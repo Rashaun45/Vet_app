@@ -1,6 +1,5 @@
 package com.vet_clinic.vet_app.model;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 
 /** Maps one row of the pet table. */
@@ -17,6 +16,20 @@ public class Pet {
     private boolean active;
 
     public Pet() {
+    }
+
+    // Used when inserting a new pet (the database sets pet_id, and a new pet is active)
+    public Pet(int ownerId, String name, String species, String breed, String sex, Date dateOfBirth, double weight, String microchipId)
+    {
+        this.ownerId = ownerId;
+        this.name = name;
+        this.species = species;
+        this.breed = breed;
+        this.sex = sex;
+        this.dateOfBirth = dateOfBirth;
+        this.weight = weight;
+        this.microchipId = microchipId;
+        this.active = true;
     }
 
     public Pet(int petId, int ownerId, String name, String species, String breed, String sex, Date dateOfBirth, double weight, String microchipId, boolean active)

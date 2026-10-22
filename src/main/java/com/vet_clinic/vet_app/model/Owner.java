@@ -15,8 +15,16 @@ public class Owner {
     public Owner() {
     }
 
-    public Owner(int ownerId, String firstName, String lastName, String phone, String email, String address, Timestamp createdAt) 
-    {
+    // Used when inserting a new owner (the database sets owner_id and created_at)
+    public Owner(String firstName, String lastName, String phone, String email, String address) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.phone = phone;
+        this.email = email;
+        this.address = address;
+    }
+
+    public Owner(int ownerId, String firstName, String lastName, String phone, String email, String address, Timestamp createdAt) {
         this.ownerId = ownerId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -25,8 +33,8 @@ public class Owner {
         this.address = address;
         this.createdAt = createdAt;
     }
-    
-//Setters and Getters
+
+    //Setters and Getters
     public int getOwnerId() {
         return ownerId;
     }
@@ -82,7 +90,8 @@ public class Owner {
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
-//String concatonation
+
+    //String concatonation
     @Override
     public String toString() {
         return "Owner{" +
