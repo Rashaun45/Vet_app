@@ -1,17 +1,74 @@
 package com.vet_clinic.vet_app.model;
 
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+
+@Entity
+@Table(name = "appointment_visit")
 public class AppointmentVisit {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "appointment_id")
     private int appointmentId;
+
+    @Column(name = "pet_id")
     private int petId;
+
+    @Column(name = "vet_id")
     private int vetId;
+
+    @Column(name = "room_id")
     private int roomId;
+
+    @Column(name = "created_by")
     private int createdBy;
+
+    @Column(name = "scheduled_at", nullable = false)
     private java.sql.Timestamp scheduledAt;
+
+    @Column(name = "checked_in_at")
     private java.sql.Timestamp checkedInAt;
+
+    @Column(name = "completed_at")
     private java.sql.Timestamp completedAt;
+
+    @Column(name = "status")
     private String status;
+
+    @Column(name = "reason_for_visit")
     private String reasonForVisit;
+
+    // Relationships  Hibernate) 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "pet_id", nullable = false)
+    private Pet pet;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "vet_id", nullable = false)
+    private Vet vet;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "room_id", nullable = false)
+    private Room room;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "created_by", nullable = false)
+    private Staff createdByStaff;
+
+    @OneToMany(mappedBy = "appointment")
+    private List<Payment> payments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "appointment")
+    private List<Diagnosis> diagnoses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "appointment")
+    private List<LabTest> tests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "appointment")
+    private List<Treatment> treatments = new ArrayList<>();
 
     public AppointmentVisit() { }
 
@@ -87,6 +144,56 @@ public class AppointmentVisit {
     
     public void setReasonForVisit(String reasonForVisit)
     { this.reasonForVisit = reasonForVisit; }
+
+//Relationship getters and setters (the setters keep the matching id field in sync)
+
+    public Pet getPet()
+    { return pet; }
+
+    public void setPet(Pet pet)
+    { this.pet = pet; if (pet != null) this.petId = pet.getPetId(); }
+
+    public Vet getVet()
+    { return vet; }
+
+    public void setVet(Vet vet)
+    { this.vet = vet; if (vet != null) this.vetId = vet.getVetId(); }
+
+    public Room getRoom()
+    { return room; }
+
+    public void setRoom(Room room)
+    { this.room = room; if (room != null) this.roomId = room.getRoomId(); }
+
+    public Staff getCreatedByStaff()
+    { return createdByStaff; }
+
+    public void setCreatedByStaff(Staff createdByStaff)
+    { this.createdByStaff = createdByStaff; if (createdByStaff != null) this.createdBy = createdByStaff.getStaffId(); }
+
+    public List<Payment> getPayments()
+    { return payments; }
+
+    public void setPayments(List<Payment> payments)
+    { this.payments = payments; }
+
+    public List<Diagnosis> getDiagnoses()
+    { return diagnoses; }
+
+    public void setDiagnoses(List<Diagnosis> diagnoses)
+    { this.diagnoses = diagnoses; }
+
+    public List<LabTest> getTests()
+    { return tests; }
+
+    public void setTests(List<LabTest> tests)
+    { this.tests = tests; }
+
+    public List<Treatment> getTreatments()
+    { return treatments; }
+
+    public void setTreatments(List<Treatment> treatments)
+    { this.treatments = treatments; }
 
     @Override
     public String toString() {

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+ "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+ "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+ <session-factory>
+ <!-- ===== JDBC connection ===== -->
+ <property name="hibernate.connection.driver_class">com.mysql.cj.jdbc.Driver</property>
+ 
+ <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/vet_clinic?useSSL=false&amp;allowPublicKeyRetrieval=true&amp;serverTimezone=UTC</property>
+
+ <property name="hibernate.connection.username">root</property>
+ <property name="hibernate.connection.password"></property>
+ 
+ <!-- Small built-in pool: fine for learning, use HikariCP in production -->
+ <property name="hibernate.connection.pool_size">5</property>
+ 
+ <!-- ===== Hibernate behaviour ===== -->
+ <!-- Hibernate 6 auto-detects MySQL, but being explicit is good practice.
+ (MySQL8Dialect / MySQL57Dialect no longer exist: use MySQLDialect.) -->
+ <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+ 
+ <!-- validate = check that entities match the existing tables; never modifies the DB.
+ (Other values: none, update, create, create-drop. Avoid "update" outside of demos.) -->
+ <property name="hibernate.hbm2ddl.auto">validate</property>
+ 
+ <!-- Print the SQL Hibernate generates: essential for learning ORM -->
+ <property name="hibernate.show_sql">true</property>
+ <property name="hibernate.format_sql">true</property>
+ 
+ <!-- ===== Entity registration ===== -->
+ <mapping class="com.vet_clinic.vet_app.model.Owner"/>
+<mapping class="com.vet_clinic.vet_app.model.Pet"/>
+<mapping class="com.vet_clinic.vet_app.model.Room"/>
+<mapping class="com.vet_clinic.vet_app.model.Vet"/>
+<mapping class="com.vet_clinic.vet_app.model.Staff"/>
+<mapping class="com.vet_clinic.vet_app.model.AppointmentVisit"/>
+<mapping class="com.vet_clinic.vet_app.model.Payment"/>
+<mapping class="com.vet_clinic.vet_app.model.Diagnosis"/>
+<mapping class="com.vet_clinic.vet_app.model.LabTest"/>
+<mapping class="com.vet_clinic.vet_app.model.Treatment"/>
+ </session-factory>
+</hibernate-configuration>

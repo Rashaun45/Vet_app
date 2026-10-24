@@ -1,14 +1,42 @@
 package com.vet_clinic.vet_app.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "payment")
 public class Payment {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "payment_id")
     private int paymentId;
+
+    @Column(name = "appointment_id")
     private int appointmentId;
+
+    @Column(name = "owner_id")
     private int ownerId;
+
+    @Column(name = "amount")
     private double amount;
+
+    @Column(name = "payment_method")
     private String paymentMethod;
+
+    @Column(name = "status")
     private String status;
+
+    @Column(name = "paid_at")
     private java.sql.Timestamp paidAt;
+
+    // Relationships Hibernate
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "appointment_id", nullable = false)
+    private AppointmentVisit appointment;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private Owner owner;
 
     public Payment() { }
 
@@ -62,6 +90,20 @@ public class Payment {
     
     public void setPaidAt(java.sql.Timestamp paidAt) 
     { this.paidAt = paidAt; }
+
+//Relationship getters and setters (the setters keep the matching id field in sync)
+
+    public AppointmentVisit getAppointment()
+    { return appointment; }
+
+    public void setAppointment(AppointmentVisit appointment)
+    { this.appointment = appointment; if (appointment != null) this.appointmentId = appointment.getAppointmentId(); }
+
+    public Owner getOwner()
+    { return owner; }
+
+    public void setOwner(Owner owner)
+    { this.owner = owner; if (owner != null) this.ownerId = owner.getOwnerId(); }
 
     @Override
     public String toString() {

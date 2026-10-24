@@ -1,16 +1,47 @@
 package com.vet_clinic.vet_app.model;
 
+import jakarta.persistence.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import org.hibernate.annotations.CreationTimestamp;
 
 /** Maps one row of the owner table. */
+@Entity
+@Table(name = "owner")
 public class Owner {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "owner_id")
     private int ownerId;
+
+    @Column(name = "first_name")
     private String firstName;
+
+    @Column(name = "last_name")
     private String lastName;
+
+    @Column(name = "phone")
     private String phone;
+
+    @Column(name = "email")
     private String email;
+
+    @Column(name = "address")
     private String address;
+
+    // Hibernate fills this in on insert (it would otherwise insert NULL over the database default)
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Timestamp createdAt;
+
+    // Relationships Hibernate
+    @OneToMany(mappedBy = "owner")
+    private List<Pet> pets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "owner")
+    private List<Payment> payments = new ArrayList<>();
 
     public Owner() {
     }
@@ -89,6 +120,22 @@ public class Owner {
 
     public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<Pet> getPets() {
+        return pets;
+    }
+
+    public void setPets(List<Pet> pets) {
+        this.pets = pets;
+    }
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
     }
 
     //String concatonation

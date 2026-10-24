@@ -1,19 +1,55 @@
 package com.vet_clinic.vet_app.model;
 
+import jakarta.persistence.*;
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /** Maps one row of the pet table. */
+@Entity
+@Table(name = "pet")
 public class Pet {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "pet_id")
     private int petId;
+
+   
+    @Column(name = "owner_id")
     private int ownerId;
+
+    @Column(name = "name")
     private String name;
+
+    @Column(name = "species")
     private String species;
+
+    @Column(name = "breed")
     private String breed;
+
+    @Column(name = "sex")
     private String sex;
+
+    @Column(name = "date_of_birth")
     private Date dateOfBirth;
+
+    @Column(name = "weight")
     private double weight;
+
+    @Column(name = "microchip_id")
     private String microchipId;
+
+    @Column(name = "is_active")
     private boolean active;
+
+    // Relationships Hibernate
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false)
+    private Owner owner;
+
+    @OneToMany(mappedBy = "pet")
+    private List<AppointmentVisit> appointments = new ArrayList<>();
 
     public Pet() {
     }
@@ -125,6 +161,26 @@ public class Pet {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    //Relationship getters and setters (setOwner keeps ownerId in sync)
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
+        if (owner != null) {
+            this.ownerId = owner.getOwnerId();
+        }
+    }
+
+    public List<AppointmentVisit> getAppointments() {
+        return appointments;
+    }
+
+    public void setAppointments(List<AppointmentVisit> appointments) {
+        this.appointments = appointments;
     }
 
     //String Concatonation

@@ -1,14 +1,50 @@
 package com.vet_clinic.vet_app.model;
 
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "diagnosis")
 public class Diagnosis {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "diagnosis_id")
     private int diagnosisId;
+
+    @Column(name = "appointment_id")
     private int appointmentId;
+
+    @Column(name = "vet_id")
     private int vetId;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "diagnosis_code")
     private String diagnosisCode;
+
+    @Column(name = "notes")
     private String notes;
+
+    @Column(name = "diagnosed_at")
     private java.sql.Timestamp diagnosedAt;
+
+    //Relationship Hibernate
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "appointment_id", nullable = false)
+    private AppointmentVisit appointment;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "vet_id", nullable = false)
+    private Vet vet;
+
+    @OneToMany(mappedBy = "diagnosis")
+    private List<Treatment> treatments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "diagnosis")
+    private List<LabTest> tests = new ArrayList<>();
 
     public Diagnosis() { }
 
@@ -65,6 +101,32 @@ public class Diagnosis {
     
     public void setDiagnosedAt(java.sql.Timestamp diagnosedAt) 
     { this.diagnosedAt = diagnosedAt; }
+
+//Relationship getters and setters (the setters keep the matching id field in sync)
+
+    public AppointmentVisit getAppointment()
+    { return appointment; }
+
+    public void setAppointment(AppointmentVisit appointment)
+    { this.appointment = appointment; if (appointment != null) this.appointmentId = appointment.getAppointmentId(); }
+
+    public Vet getVet()
+    { return vet; }
+
+    public void setVet(Vet vet)
+    { this.vet = vet; if (vet != null) this.vetId = vet.getVetId(); }
+
+    public List<Treatment> getTreatments()
+    { return treatments; }
+
+    public void setTreatments(List<Treatment> treatments)
+    { this.treatments = treatments; }
+
+    public List<LabTest> getTests()
+    { return tests; }
+
+    public void setTests(List<LabTest> tests)
+    { this.tests = tests; }
 
     @Override
     public String toString() {

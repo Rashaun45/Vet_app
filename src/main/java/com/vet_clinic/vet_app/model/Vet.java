@@ -1,14 +1,45 @@
 package com.vet_clinic.vet_app.model;
 
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "vet")
 public class Vet {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "vet_id")
     private int vetId;
+
+    @Column(name = "first_name")
     private String firstName;
+
+    @Column(name = "last_name")
     private String lastName;
+
+    @Column(name = "specialty")
     private String specialty;
+
+    @Column(name = "license_number")
     private String licenseNumber;
+
+    @Column(name = "phone")
     private String phone;
+
+    @Column(name = "email")
     private String email;
+
+    // Relationships Hibernate
+    @OneToMany(mappedBy = "vet")
+    private List<AppointmentVisit> appointments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "vet")
+    private List<Diagnosis> diagnoses = new ArrayList<>();
+
+    @OneToMany(mappedBy = "orderedByVet")
+    private List<LabTest> orderedTests = new ArrayList<>();
 
     public Vet() { }
 
@@ -65,6 +96,24 @@ public class Vet {
     
     public void setEmail(String email) 
     { this.email = email; }
+
+    public List<AppointmentVisit> getAppointments()
+    { return appointments; }
+
+    public void setAppointments(List<AppointmentVisit> appointments)
+    { this.appointments = appointments; }
+
+    public List<Diagnosis> getDiagnoses()
+    { return diagnoses; }
+
+    public void setDiagnoses(List<Diagnosis> diagnoses)
+    { this.diagnoses = diagnoses; }
+
+    public List<LabTest> getOrderedTests()
+    { return orderedTests; }
+
+    public void setOrderedTests(List<LabTest> orderedTests)
+    { this.orderedTests = orderedTests; }
 
     @Override
     public String toString() {

@@ -1,13 +1,42 @@
 package com.vet_clinic.vet_app.model;
 
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "staff")
 public class Staff {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "staff_id")
     private int staffId;
+
+    @Column(name = "role")
     private String role;
+
+    @Column(name = "first_name")
     private String firstName;
+
+    @Column(name = "last_name")
     private String lastName;
+
+    @Column(name = "phone")
     private String phone;
+
+    @Column(name = "email")
     private String email;
+
+    // Relationships Hibernate
+    @OneToMany(mappedBy = "createdByStaff")
+    private List<AppointmentVisit> createdAppointments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "performedByStaff")
+    private List<LabTest> performedTests = new ArrayList<>();
+
+    @OneToMany(mappedBy = "administeredByStaff")
+    private List<Treatment> administeredTreatments = new ArrayList<>();
 
     public Staff() { }
 
@@ -57,6 +86,24 @@ public class Staff {
     
     public void setEmail(String email)
     { this.email = email; }
+
+    public List<AppointmentVisit> getCreatedAppointments()
+    { return createdAppointments; }
+
+    public void setCreatedAppointments(List<AppointmentVisit> createdAppointments)
+    { this.createdAppointments = createdAppointments; }
+
+    public List<LabTest> getPerformedTests()
+    { return performedTests; }
+
+    public void setPerformedTests(List<LabTest> performedTests)
+    { this.performedTests = performedTests; }
+
+    public List<Treatment> getAdministeredTreatments()
+    { return administeredTreatments; }
+
+    public void setAdministeredTreatments(List<Treatment> administeredTreatments)
+    { this.administeredTreatments = administeredTreatments; }
 
     @Override
     public String toString() {

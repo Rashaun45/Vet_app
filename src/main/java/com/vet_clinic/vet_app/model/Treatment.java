@@ -1,17 +1,56 @@
 package com.vet_clinic.vet_app.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "treatment")
 public class Treatment {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "treatment_id")
     private int treatmentId;
+
+    
+    @Column(name = "diagnosis_id")
     private int diagnosisId;
+
+    @Column(name = "appointment_id")
     private int appointmentId;
+
+    @Column(name = "treatment_type")
     private String treatmentType;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "dosage")
     private String dosage;
+
+    @Column(name = "duration")
     private String duration;
+
+    @Column(name = "administered_by")
     private int administeredBy;
+
+    @Column(name = "start_date")
     private java.sql.Date startDate;
+
+    @Column(name = "end_date")
     private java.sql.Date endDate;
+
+    // Relationships Hibernate
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "diagnosis_id", nullable = false)
+    private Diagnosis diagnosis;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "appointment_id", nullable = false)
+    private AppointmentVisit appointment;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "administered_by", nullable = false)
+    private Staff administeredByStaff;
 
     public Treatment() { }
 
@@ -88,6 +127,26 @@ public class Treatment {
     
     public void setEndDate(java.sql.Date endDate)
     { this.endDate = endDate; }
+
+//Relationship getters and setters (the setters keep the matching id field in sync)
+
+    public Diagnosis getDiagnosis()
+    { return diagnosis; }
+
+    public void setDiagnosis(Diagnosis diagnosis)
+    { this.diagnosis = diagnosis; if (diagnosis != null) this.diagnosisId = diagnosis.getDiagnosisId(); }
+
+    public AppointmentVisit getAppointment()
+    { return appointment; }
+
+    public void setAppointment(AppointmentVisit appointment)
+    { this.appointment = appointment; if (appointment != null) this.appointmentId = appointment.getAppointmentId(); }
+
+    public Staff getAdministeredByStaff()
+    { return administeredByStaff; }
+
+    public void setAdministeredByStaff(Staff administeredByStaff)
+    { this.administeredByStaff = administeredByStaff; if (administeredByStaff != null) this.administeredBy = administeredByStaff.getStaffId(); }
 
     @Override
     public String toString() {
