@@ -1,5 +1,6 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.LabTestDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.LabTest;
 import java.sql.*;
@@ -7,8 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 // Works on the "test" table (named LabTest in Java so it is not confused with unit tests)
-public class LabTestDAO {
+public class LabTestDAOJdbc implements LabTestDao {
 
+    @Override
     public int createTest(LabTest t) throws SQLException {
         String sql = "INSERT INTO test (appointment_id, diagnosis_id, test_type, ordered_by, performed_by, ordered_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
@@ -31,6 +33,7 @@ public class LabTestDAO {
         }
     }
 
+    @Override
     public LabTest findById(int testId) throws SQLException {
         String sql = "SELECT * FROM test WHERE test_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -42,6 +45,7 @@ public class LabTestDAO {
         }
     }
 
+    @Override
     public List<LabTest> findByAppointmentId(int appointmentId) throws SQLException {
         String sql = "SELECT * FROM test WHERE appointment_id = ?";
         List<LabTest> list = new ArrayList<>();
@@ -55,6 +59,7 @@ public class LabTestDAO {
         return list;
     }
 
+    @Override
     public List<LabTest> getAllTests() throws SQLException {
         String sql = "SELECT * FROM test ORDER BY test_id";
         List<LabTest> list = new ArrayList<>();
@@ -67,6 +72,7 @@ public class LabTestDAO {
     }
 
     // UPDATE - record the result and stamp the completion time
+    @Override
     public boolean recordResult(int testId, String result) throws SQLException {
         String sql = "UPDATE test SET result = ?, completed_at = NOW() WHERE test_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -77,6 +83,7 @@ public class LabTestDAO {
         }
     }
 
+    @Override
     public boolean deleteTest(int testId) throws SQLException {
         String sql = "DELETE FROM test WHERE test_id = ?";
         try (Connection con = DatabaseConnection.getConnection();

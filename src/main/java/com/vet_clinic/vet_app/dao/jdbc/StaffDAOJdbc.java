@@ -1,13 +1,15 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.StaffDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.Staff;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StaffDAO {
+public class StaffDAOJdbc implements StaffDao {
 
+    @Override
     public int createStaff(Staff s) throws SQLException {
         String sql = "INSERT INTO staff (role, first_name, last_name, phone, email) VALUES (?, ?, ?, ?, ?)";
         try (Connection con = DatabaseConnection.getConnection();
@@ -24,6 +26,7 @@ public class StaffDAO {
         }
     }
 
+    @Override
     public Staff findById(int staffId) throws SQLException {
         String sql = "SELECT * FROM staff WHERE staff_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -35,6 +38,7 @@ public class StaffDAO {
         }
     }
 
+    @Override
     public List<Staff> findByRole(String role) throws SQLException {
         String sql = "SELECT * FROM staff WHERE role = ?";
         List<Staff> list = new ArrayList<>();
@@ -48,6 +52,7 @@ public class StaffDAO {
         return list;
     }
 
+    @Override
     public List<Staff> getAllStaff() throws SQLException {
         String sql = "SELECT * FROM staff ORDER BY staff_id";
         List<Staff> list = new ArrayList<>();
@@ -59,6 +64,7 @@ public class StaffDAO {
         return list;
     }
 
+    @Override
     public boolean updateRole(int staffId, String role) throws SQLException {
         String sql = "UPDATE staff SET role = ? WHERE staff_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -69,6 +75,7 @@ public class StaffDAO {
         }
     }
 
+    @Override
     public boolean deleteStaff(int staffId) throws SQLException {
         String sql = "DELETE FROM staff WHERE staff_id = ?";
         try (Connection con = DatabaseConnection.getConnection();

@@ -1,13 +1,15 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.RoomDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.Room;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RoomDAO {
+public class RoomDAOJdbc implements RoomDao {
 
+    @Override
     public int createRoom(Room r) throws SQLException {
         String sql = "INSERT INTO room (room_number, room_type, status) VALUES (?, ?, ?)";
         try (Connection con = DatabaseConnection.getConnection();
@@ -22,6 +24,7 @@ public class RoomDAO {
         }
     }
 
+    @Override
     public Room findById(int roomId) throws SQLException {
         String sql = "SELECT * FROM room WHERE room_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -33,6 +36,7 @@ public class RoomDAO {
         }
     }
 
+    @Override
     public List<Room> findByStatus(String status) throws SQLException {
         String sql = "SELECT * FROM room WHERE status = ?";
         List<Room> list = new ArrayList<>();
@@ -46,6 +50,7 @@ public class RoomDAO {
         return list;
     }
 
+    @Override
     public List<Room> getAllRooms() throws SQLException {
         String sql = "SELECT * FROM room ORDER BY room_id";
         List<Room> list = new ArrayList<>();
@@ -57,6 +62,7 @@ public class RoomDAO {
         return list;
     }
 
+    @Override
     public boolean updateStatus(int roomId, String status) throws SQLException {
         String sql = "UPDATE room SET status = ? WHERE room_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -67,6 +73,7 @@ public class RoomDAO {
         }
     }
 
+    @Override
     public boolean deleteRoom(int roomId) throws SQLException {
         String sql = "DELETE FROM room WHERE room_id = ?";
         try (Connection con = DatabaseConnection.getConnection();

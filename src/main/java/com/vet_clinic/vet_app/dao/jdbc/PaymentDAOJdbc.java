@@ -1,13 +1,15 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.PaymentDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.Payment;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PaymentDAO {
+public class PaymentDAOJdbc implements PaymentDao {
 
+    @Override
     public int createPayment(Payment p) throws SQLException {
         String sql = "INSERT INTO payment (appointment_id, owner_id, amount, payment_method, status) VALUES (?, ?, ?, ?, ?)";
         try (Connection con = DatabaseConnection.getConnection();
@@ -24,6 +26,7 @@ public class PaymentDAO {
         }
     }
 
+    @Override
     public Payment findById(int paymentId) throws SQLException {
         String sql = "SELECT * FROM payment WHERE payment_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -35,6 +38,7 @@ public class PaymentDAO {
         }
     }
 
+    @Override
     public List<Payment> findByOwnerId(int ownerId) throws SQLException {
         String sql = "SELECT * FROM payment WHERE owner_id = ?";
         List<Payment> list = new ArrayList<>();
@@ -48,6 +52,7 @@ public class PaymentDAO {
         return list;
     }
 
+    @Override
     public List<Payment> getAllPayments() throws SQLException {
         String sql = "SELECT * FROM payment ORDER BY payment_id";
         List<Payment> list = new ArrayList<>();
@@ -60,6 +65,7 @@ public class PaymentDAO {
     }
 
     // Aggregate SELECT with a condition - total an owner has paid
+    @Override
     public double getTotalPaidByOwner(int ownerId) throws SQLException {
         String sql = "SELECT COALESCE(SUM(amount), 0) AS total FROM payment WHERE owner_id = ? AND status = 'Paid'";
         try (Connection con = DatabaseConnection.getConnection();
@@ -72,6 +78,7 @@ public class PaymentDAO {
     }
 
     // UPDATE - mark as paid and stamp the time
+    @Override
     public boolean markPaid(int paymentId) throws SQLException {
         String sql = "UPDATE payment SET status = 'Paid', paid_at = NOW() WHERE payment_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -81,6 +88,7 @@ public class PaymentDAO {
         }
     }
 
+    @Override
     public boolean deletePayment(int paymentId) throws SQLException {
         String sql = "DELETE FROM payment WHERE payment_id = ?";
         try (Connection con = DatabaseConnection.getConnection();

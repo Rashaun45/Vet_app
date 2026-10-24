@@ -1,13 +1,15 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.TreatmentDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.Treatment;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TreatmentDAO {
+public class TreatmentDAOJdbc implements TreatmentDao {
 
+    @Override
     public int createTreatment(Treatment t) throws SQLException {
         String sql = "INSERT INTO treatment (diagnosis_id, appointment_id, treatment_type, description, dosage, duration, "
                 + "administered_by, start_date, end_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -29,6 +31,7 @@ public class TreatmentDAO {
         }
     }
 
+    @Override
     public Treatment findById(int treatmentId) throws SQLException {
         String sql = "SELECT * FROM treatment WHERE treatment_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -40,6 +43,7 @@ public class TreatmentDAO {
         }
     }
 
+    @Override
     public List<Treatment> findByDiagnosisId(int diagnosisId) throws SQLException {
         String sql = "SELECT * FROM treatment WHERE diagnosis_id = ?";
         List<Treatment> list = new ArrayList<>();
@@ -53,6 +57,7 @@ public class TreatmentDAO {
         return list;
     }
 
+    @Override
     public List<Treatment> getAllTreatments() throws SQLException {
         String sql = "SELECT * FROM treatment ORDER BY treatment_id";
         List<Treatment> list = new ArrayList<>();
@@ -64,6 +69,7 @@ public class TreatmentDAO {
         return list;
     }
 
+    @Override
     public boolean updateDosage(int treatmentId, String dosage) throws SQLException {
         String sql = "UPDATE treatment SET dosage = ? WHERE treatment_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -74,6 +80,7 @@ public class TreatmentDAO {
         }
     }
 
+    @Override
     public boolean deleteTreatment(int treatmentId) throws SQLException {
         String sql = "DELETE FROM treatment WHERE treatment_id = ?";
         try (Connection con = DatabaseConnection.getConnection();

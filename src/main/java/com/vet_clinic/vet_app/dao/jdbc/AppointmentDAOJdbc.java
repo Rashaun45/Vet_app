@@ -1,13 +1,15 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.AppointmentDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.AppointmentVisit;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AppointmentDAO {
+public class AppointmentDAOJdbc implements AppointmentDao {
 
+    @Override
     public int createAppointment(AppointmentVisit a) throws SQLException {
         String sql = "INSERT INTO appointment_visit (pet_id, vet_id, room_id, created_by, scheduled_at, status, reason_for_visit) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -27,6 +29,7 @@ public class AppointmentDAO {
         }
     }
 
+    @Override
     public AppointmentVisit findById(int appointmentId) throws SQLException {
         String sql = "SELECT * FROM appointment_visit WHERE appointment_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -38,6 +41,7 @@ public class AppointmentDAO {
         }
     }
 
+    @Override
     public List<AppointmentVisit> findByStatus(String status) throws SQLException {
         String sql = "SELECT * FROM appointment_visit WHERE status = ? ORDER BY scheduled_at";
         List<AppointmentVisit> list = new ArrayList<>();
@@ -51,6 +55,7 @@ public class AppointmentDAO {
         return list;
     }
 
+    @Override
     public List<AppointmentVisit> getAllAppointments() throws SQLException {
         String sql = "SELECT * FROM appointment_visit ORDER BY appointment_id";
         List<AppointmentVisit> list = new ArrayList<>();
@@ -63,6 +68,7 @@ public class AppointmentDAO {
     }
 
     // MULTIPLE SELECT - JOIN across pet, owner, vet and room for a given status
+    @Override
     public void printAppointmentsByStatus(String status) throws SQLException {
         String sql = "SELECT a.appointment_id, a.scheduled_at, a.status, "
                 + "p.name AS pet_name, o.first_name, o.last_name, "
@@ -90,6 +96,7 @@ public class AppointmentDAO {
         }
     }
 
+    @Override
     public boolean updateStatus(int appointmentId, String status) throws SQLException {
         String sql = "UPDATE appointment_visit SET status = ? WHERE appointment_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -100,6 +107,7 @@ public class AppointmentDAO {
         }
     }
 
+    @Override
     public boolean deleteAppointment(int appointmentId) throws SQLException {
         String sql = "DELETE FROM appointment_visit WHERE appointment_id = ?";
         try (Connection con = DatabaseConnection.getConnection();

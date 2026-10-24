@@ -1,5 +1,15 @@
 package com.vet_app;
 
+import com.vet_clinic.vet_app.dao.jdbc.VetDAOJdbc;
+import com.vet_clinic.vet_app.dao.jdbc.TreatmentDAOJdbc;
+import com.vet_clinic.vet_app.dao.jdbc.StaffDAOJdbc;
+import com.vet_clinic.vet_app.dao.jdbc.RoomDAOJdbc;
+import com.vet_clinic.vet_app.dao.jdbc.PetDAOJdbc;
+import com.vet_clinic.vet_app.dao.jdbc.PaymentDAOJdbc;
+import com.vet_clinic.vet_app.dao.jdbc.OwnerDAOJdbc;
+import com.vet_clinic.vet_app.dao.jdbc.LabTestDAOJdbc;
+import com.vet_clinic.vet_app.dao.jdbc.DiagnosisDAOjdbc;
+import com.vet_clinic.vet_app.dao.jdbc.AppointmentDAOJdbc;
 import com.vet_clinic.vet_app.dao.*;
 import com.vet_clinic.vet_app.model.*;
 import java.sql.Date;
@@ -12,16 +22,16 @@ public class Vet_app {
 
     public static void main(String[] args) {
 
-        OwnerDAO ownerDAO = new OwnerDAO();
-        PetDAO petDAO = new PetDAO();
-        VetDAO vetDAO = new VetDAO();
-        StaffDAO staffDAO = new StaffDAO();
-        RoomDAO roomDAO = new RoomDAO();
-        AppointmentDAO apptDAO = new AppointmentDAO();
-        DiagnosisDAO diagDAO = new DiagnosisDAO();
-        LabTestDAO testDAO = new LabTestDAO();
-        TreatmentDAO treatDAO = new TreatmentDAO();
-        PaymentDAO payDAO = new PaymentDAO();
+        OwnerDAOJdbc ownerDAO = new OwnerDAOJdbc();
+        PetDAOJdbc petDAO = new PetDAOJdbc();
+        VetDAOJdbc vetDAO = new VetDAOJdbc();
+        StaffDAOJdbc staffDAO = new StaffDAOJdbc();
+        RoomDAOJdbc roomDAO = new RoomDAOJdbc();
+        AppointmentDAOJdbc apptDAO = new AppointmentDAOJdbc();
+        DiagnosisDAOjdbc diagDAO = new DiagnosisDAOjdbc();
+        LabTestDAOJdbc testDAO = new LabTestDAOJdbc();
+        TreatmentDAOJdbc treatDAO = new TreatmentDAOJdbc();
+        PaymentDAOJdbc payDAO = new PaymentDAOJdbc();
 
         // ids of the rows this demo creates, so we can clean up at the end
         int ownerId = -1, petId = -1, vetId = -1, staffId = -1, roomId = -1;

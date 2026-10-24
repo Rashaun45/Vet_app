@@ -1,13 +1,15 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.VetDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.Vet;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class VetDAO {
+public class VetDAOJdbc implements VetDao {
 
+    @Override
     public int createVet(Vet v) throws SQLException {
         String sql = "INSERT INTO vet (first_name, last_name, specialty, license_number, phone, email) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection con = DatabaseConnection.getConnection();
@@ -25,6 +27,7 @@ public class VetDAO {
         }
     }
 
+    @Override
     public Vet findById(int vetId) throws SQLException {
         String sql = "SELECT * FROM vet WHERE vet_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -36,6 +39,7 @@ public class VetDAO {
         }
     }
 
+    @Override
     public List<Vet> findBySpecialty(String specialty) throws SQLException {
         String sql = "SELECT * FROM vet WHERE specialty = ?";
         List<Vet> list = new ArrayList<>();
@@ -49,6 +53,7 @@ public class VetDAO {
         return list;
     }
 
+    @Override
     public List<Vet> getAllVets() throws SQLException {
         String sql = "SELECT * FROM vet ORDER BY vet_id";
         List<Vet> list = new ArrayList<>();
@@ -60,6 +65,7 @@ public class VetDAO {
         return list;
     }
 
+    @Override
     public boolean updatePhone(int vetId, String phone) throws SQLException {
         String sql = "UPDATE vet SET phone = ? WHERE vet_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -70,6 +76,7 @@ public class VetDAO {
         }
     }
 
+    @Override
     public boolean deleteVet(int vetId) throws SQLException {
         String sql = "DELETE FROM vet WHERE vet_id = ?";
         try (Connection con = DatabaseConnection.getConnection();

@@ -1,14 +1,16 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.OwnerDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.Owner;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OwnerDAO {
+public class OwnerDAOJdbc implements OwnerDao {
 
     // INSERT - returns the generated owner_id
+    @Override
     public int createOwner(Owner o) throws SQLException {
         String sql = "INSERT INTO owner (first_name, last_name, phone, email, address) VALUES (?, ?, ?, ?, ?)";
         try (Connection con = DatabaseConnection.getConnection();
@@ -26,6 +28,7 @@ public class OwnerDAO {
     }
 
     // SELECT with a condition (one row)
+    @Override
     public Owner findById(int ownerId) throws SQLException {
         String sql = "SELECT * FROM owner WHERE owner_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -38,6 +41,7 @@ public class OwnerDAO {
     }
 
     // SELECT with a condition (many rows)
+    @Override
     public List<Owner> findByLastName(String lastName) throws SQLException {
         String sql = "SELECT * FROM owner WHERE last_name = ?";
         List<Owner> list = new ArrayList<>();
@@ -52,6 +56,7 @@ public class OwnerDAO {
     }
 
     // SELECT multiple rows
+    @Override
     public List<Owner> getAllOwners() throws SQLException {
         String sql = "SELECT * FROM owner ORDER BY owner_id";
         List<Owner> list = new ArrayList<>();
@@ -64,6 +69,7 @@ public class OwnerDAO {
     }
 
     // UPDATE
+    @Override
     public boolean updatePhone(int ownerId, String phone) throws SQLException {
         String sql = "UPDATE owner SET phone = ? WHERE owner_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -75,6 +81,7 @@ public class OwnerDAO {
     }
 
     // DELETE
+    @Override
     public boolean deleteOwner(int ownerId) throws SQLException {
         String sql = "DELETE FROM owner WHERE owner_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -85,6 +92,7 @@ public class OwnerDAO {
     }
 
     // MANAGING RESULT SETS - scrollable ResultSet + metadata
+    @Override
     public void showOwnersScrollable() throws SQLException {
         String sql = "SELECT owner_id, first_name, last_name, phone FROM owner ORDER BY owner_id";
         try (Connection con = DatabaseConnection.getConnection();

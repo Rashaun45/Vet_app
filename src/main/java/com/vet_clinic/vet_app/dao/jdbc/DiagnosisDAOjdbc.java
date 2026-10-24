@@ -1,13 +1,15 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.DiagnosisDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.Diagnosis;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DiagnosisDAO {
+public class DiagnosisDAOjdbc implements DiagnosisDao {
 
+    @Override
     public int createDiagnosis(Diagnosis d) throws SQLException {
         String sql = "INSERT INTO diagnosis (appointment_id, vet_id, description, diagnosis_code, notes, diagnosed_at) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
@@ -26,6 +28,7 @@ public class DiagnosisDAO {
         }
     }
 
+    @Override
     public Diagnosis findById(int diagnosisId) throws SQLException {
         String sql = "SELECT * FROM diagnosis WHERE diagnosis_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -37,6 +40,7 @@ public class DiagnosisDAO {
         }
     }
 
+    @Override
     public List<Diagnosis> findByAppointmentId(int appointmentId) throws SQLException {
         String sql = "SELECT * FROM diagnosis WHERE appointment_id = ?";
         List<Diagnosis> list = new ArrayList<>();
@@ -50,6 +54,7 @@ public class DiagnosisDAO {
         return list;
     }
 
+    @Override
     public List<Diagnosis> getAllDiagnoses() throws SQLException {
         String sql = "SELECT * FROM diagnosis ORDER BY diagnosis_id";
         List<Diagnosis> list = new ArrayList<>();
@@ -61,6 +66,7 @@ public class DiagnosisDAO {
         return list;
     }
 
+    @Override
     public boolean updateNotes(int diagnosisId, String notes) throws SQLException {
         String sql = "UPDATE diagnosis SET notes = ? WHERE diagnosis_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -71,6 +77,7 @@ public class DiagnosisDAO {
         }
     }
 
+    @Override
     public boolean deleteDiagnosis(int diagnosisId) throws SQLException {
         String sql = "DELETE FROM diagnosis WHERE diagnosis_id = ?";
         try (Connection con = DatabaseConnection.getConnection();

@@ -1,13 +1,15 @@
-package com.vet_clinic.vet_app.dao;
+package com.vet_clinic.vet_app.dao.jdbc;
 
+import com.vet_clinic.vet_app.dao.PetDao;
 import com.vet_clinic.vet_app.config.DatabaseConnection;
 import com.vet_clinic.vet_app.model.Pet;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PetDAO {
+public class PetDAOJdbc implements PetDao {
 
+    @Override
     public int createPet(Pet p) throws SQLException {
         String sql = "INSERT INTO pet (owner_id, name, species, breed, sex, date_of_birth, weight, microchip_id, is_active) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -29,6 +31,7 @@ public class PetDAO {
         }
     }
 
+    @Override
     public Pet findById(int petId) throws SQLException {
         String sql = "SELECT * FROM pet WHERE pet_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -40,18 +43,22 @@ public class PetDAO {
         }
     }
 
+    @Override
     public List<Pet> findByOwnerId(int ownerId) throws SQLException {
         return query("SELECT * FROM pet WHERE owner_id = ?", ownerId);
     }
 
+    @Override
     public List<Pet> findBySpecies(String species) throws SQLException {
         return query("SELECT * FROM pet WHERE species = ?", species);
     }
 
+    @Override
     public List<Pet> getAllPets() throws SQLException {
         return query("SELECT * FROM pet ORDER BY pet_id", null);
     }
 
+    @Override
     public boolean updateWeight(int petId, double weight) throws SQLException {
         String sql = "UPDATE pet SET weight = ? WHERE pet_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
@@ -62,6 +69,7 @@ public class PetDAO {
         }
     }
 
+    @Override
     public boolean deletePet(int petId) throws SQLException {
         String sql = "DELETE FROM pet WHERE pet_id = ?";
         try (Connection con = DatabaseConnection.getConnection();
