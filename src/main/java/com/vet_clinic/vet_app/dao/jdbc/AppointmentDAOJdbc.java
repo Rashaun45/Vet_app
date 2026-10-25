@@ -6,8 +6,12 @@ import com.vet_clinic.vet_app.model.AppointmentVisit;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class AppointmentDAOJdbc implements AppointmentDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(AppointmentDAOJdbc.class);
 
     @Override
     public int createAppointment(AppointmentVisit a) throws SQLException {
@@ -24,7 +28,9 @@ public class AppointmentDAOJdbc implements AppointmentDao {
             ps.setString(7, a.getReasonForVisit());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createAppointment", id);
+                return id;
             }
         }
     }
@@ -36,7 +42,12 @@ public class AppointmentDAOJdbc implements AppointmentDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, appointmentId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapAppointment(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", appointmentId);
+                    return mapAppointment(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", appointmentId);
+                return null;
             }
         }
     }
@@ -52,6 +63,7 @@ public class AppointmentDAOJdbc implements AppointmentDao {
                 while (rs.next()) list.add(mapAppointment(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "findByStatus", list.size());
         return list;
     }
 
@@ -64,12 +76,14 @@ public class AppointmentDAOJdbc implements AppointmentDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapAppointment(rs));
         }
+        LOGGER.debug("{} returned {} row(s)", "getAllAppointments", list.size());
         return list;
     }
 
     // MULTIPLE SELECT - JOIN across pet, owner, vet and room for a given status
     @Override
     public void printAppointmentsByStatus(String status) throws SQLException {
+        LOGGER.info("Printing appointments with status {}", status);
         String sql = "SELECT a.appointment_id, a.scheduled_at, a.status, "
                 + "p.name AS pet_name, o.first_name, o.last_name, "
                 + "v.last_name AS vet_last, r.room_number "
@@ -103,7 +117,13 @@ public class AppointmentDAOJdbc implements AppointmentDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, appointmentId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "updateStatus", appointmentId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "updateStatus", appointmentId);
+            }
+            return changed;
         }
     }
 
@@ -113,7 +133,13 @@ public class AppointmentDAOJdbc implements AppointmentDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, appointmentId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deleteAppointment", appointmentId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deleteAppointment", appointmentId);
+            }
+            return changed;
         }
     }
 

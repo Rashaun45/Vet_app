@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" name="VetApp">
+
+    <Properties>
+        <Property name="LOG_DIR">logs</Property>
+        <!-- short layout for the console -->
+        <Property name="CONSOLE_PATTERN">%d{HH:mm:ss.SSS} %-5level %c{1} - %msg%n</Property>
+        <!-- detailed layout for the files: date, thread, level, class, line number -->
+        <Property name="FILE_PATTERN">%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} (%F:%L) - %msg%n</Property>
+    </Properties>
+
+    <Appenders>
+
+        <!-- Console appender -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${CONSOLE_PATTERN}"/>
+        </Console>
+
+        <!-- RollingFile appender: everything, starts a new file at 1 MB or each new day, keeps 5 files -->
+        <RollingFile name="RollingFile"
+                     fileName="${LOG_DIR}/vet_app.log"
+                     filePattern="${LOG_DIR}/vet_app-%d{yyyy-MM-dd}-%i.log">
+            <PatternLayout pattern="${FILE_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="1 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingFile>
+
+        <!-- RollingFile appender: only ERROR and FATAL, so problems are easy to find -->
+        <RollingFile name="ErrorFile"
+                     fileName="${LOG_DIR}/vet_app_errors.log"
+                     filePattern="${LOG_DIR}/vet_app_errors-%d{yyyy-MM-dd}-%i.log">
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${FILE_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="1 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="5"/>
+        </RollingFile>
+
+    </Appenders>
+
+    <Loggers>
+
+        <!-- Our own code (ORM/JDBC packages): DEBUG and above go to the files, INFO and above to the console -->
+        <Logger name="com.vet_clinic.vet_app" level="debug" additivity="false">
+            <AppenderRef ref="Console" level="info"/>
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+
+        <!-- Vet_app (the main class) lives in a different package, so it gets the same setup -->
+        <Logger name="com.vet_app" level="debug" additivity="false">
+            <AppenderRef ref="Console" level="info"/>
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Logger>
+
+        <!-- Everything else (Hibernate, MySQL driver): only warnings and worse -->
+        <Root level="warn">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+            <AppenderRef ref="ErrorFile"/>
+        </Root>
+
+    </Loggers>
+</Configuration>

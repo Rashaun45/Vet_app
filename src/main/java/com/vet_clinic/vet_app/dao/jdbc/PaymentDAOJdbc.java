@@ -6,8 +6,12 @@ import com.vet_clinic.vet_app.model.Payment;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class PaymentDAOJdbc implements PaymentDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(PaymentDAOJdbc.class);
 
     @Override
     public int createPayment(Payment p) throws SQLException {
@@ -21,7 +25,9 @@ public class PaymentDAOJdbc implements PaymentDao {
             ps.setString(5, p.getStatus());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createPayment", id);
+                return id;
             }
         }
     }
@@ -33,7 +39,12 @@ public class PaymentDAOJdbc implements PaymentDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, paymentId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapPayment(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", paymentId);
+                    return mapPayment(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", paymentId);
+                return null;
             }
         }
     }
@@ -49,6 +60,7 @@ public class PaymentDAOJdbc implements PaymentDao {
                 while (rs.next()) list.add(mapPayment(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "findByOwnerId", list.size());
         return list;
     }
 
@@ -61,6 +73,7 @@ public class PaymentDAOJdbc implements PaymentDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapPayment(rs));
         }
+        LOGGER.debug("{} returned {} row(s)", "getAllPayments", list.size());
         return list;
     }
 
@@ -72,7 +85,9 @@ public class PaymentDAOJdbc implements PaymentDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, ownerId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getDouble("total") : 0;
+                double total = rs.next() ? rs.getDouble("total") : 0;
+                LOGGER.debug("{} for owner {} = {}", "getTotalPaidByOwner", ownerId, total);
+                return total;
             }
         }
     }
@@ -84,7 +99,13 @@ public class PaymentDAOJdbc implements PaymentDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, paymentId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "markPaid", paymentId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "markPaid", paymentId);
+            }
+            return changed;
         }
     }
 
@@ -94,7 +115,13 @@ public class PaymentDAOJdbc implements PaymentDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, paymentId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deletePayment", paymentId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deletePayment", paymentId);
+            }
+            return changed;
         }
     }
 

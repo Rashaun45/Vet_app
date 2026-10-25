@@ -6,8 +6,12 @@ import com.vet_clinic.vet_app.model.Treatment;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TreatmentDAOJdbc implements TreatmentDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(TreatmentDAOJdbc.class);
 
     @Override
     public int createTreatment(Treatment t) throws SQLException {
@@ -26,7 +30,9 @@ public class TreatmentDAOJdbc implements TreatmentDao {
             ps.setDate(9, t.getEndDate());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createTreatment", id);
+                return id;
             }
         }
     }
@@ -38,7 +44,12 @@ public class TreatmentDAOJdbc implements TreatmentDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, treatmentId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapTreatment(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", treatmentId);
+                    return mapTreatment(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", treatmentId);
+                return null;
             }
         }
     }
@@ -54,6 +65,7 @@ public class TreatmentDAOJdbc implements TreatmentDao {
                 while (rs.next()) list.add(mapTreatment(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "findByDiagnosisId", list.size());
         return list;
     }
 
@@ -66,6 +78,7 @@ public class TreatmentDAOJdbc implements TreatmentDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapTreatment(rs));
         }
+        LOGGER.debug("{} returned {} row(s)", "getAllTreatments", list.size());
         return list;
     }
 
@@ -76,7 +89,13 @@ public class TreatmentDAOJdbc implements TreatmentDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, dosage);
             ps.setInt(2, treatmentId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "updateDosage", treatmentId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "updateDosage", treatmentId);
+            }
+            return changed;
         }
     }
 
@@ -86,7 +105,13 @@ public class TreatmentDAOJdbc implements TreatmentDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, treatmentId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deleteTreatment", treatmentId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deleteTreatment", treatmentId);
+            }
+            return changed;
         }
     }
 

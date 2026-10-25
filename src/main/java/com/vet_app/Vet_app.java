@@ -17,10 +17,17 @@ import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Timestamp;
 import java.util.List;
+import com.vet_clinic.vet_app.util.ErrorHandler;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class Vet_app {
 
+    private static final Logger LOGGER = LogManager.getLogger(Vet_app.class);
+
     public static void main(String[] args) {
+
+        LOGGER.info("Vet app started");
 
         OwnerDAOJdbc ownerDAO = new OwnerDAOJdbc();
         PetDAOJdbc petDAO = new PetDAOJdbc();
@@ -40,6 +47,7 @@ public class Vet_app {
         try {
             // ---------- 1. INSERT (create) ----------
             System.out.println("=== 1. INSERT ===");
+            LOGGER.info("Section 1: INSERT");
             ownerId = ownerDAO.createOwner(new Owner("Demo", "Tester", "000-000-0001", "demo@example.com", "1 Demo Lane"));
             vetId = vetDAO.createVet(new Vet("Demo", "Vet", "Surgery", "LIC-DEMO", "000-000-0002", "vet@example.com"));
             staffId = staffDAO.createStaff(new Staff("Receptionist", "Demo", "Staff", "000-000-0003", "staff@example.com"));
@@ -60,6 +68,7 @@ public class Vet_app {
 
             // ---------- 2. SELECT with a condition ----------
             System.out.println("\n=== 2. SELECT WITH CONDITION ===");
+            LOGGER.info("Section 2: SELECT WITH CONDITION");
             System.out.println("Owner by id      : " + ownerDAO.findById(ownerId));
             System.out.println("Owners by surname: " + ownerDAO.findByLastName("Tester").size() + " found");
             System.out.println("Pets of owner    : " + petDAO.findByOwnerId(ownerId));
@@ -74,6 +83,7 @@ public class Vet_app {
 
             // ---------- 3. SELECT multiple rows / JOIN ----------
             System.out.println("\n=== 3. MULTIPLE SELECT ===");
+            LOGGER.info("Section 3: MULTIPLE SELECT");
             List<Owner> owners = ownerDAO.getAllOwners();
             System.out.println("All owners: " + owners.size());
             System.out.println("All pets: " + petDAO.getAllPets().size()
@@ -90,6 +100,7 @@ public class Vet_app {
 
             // ---------- 4. UPDATE ----------
             System.out.println("\n=== 4. UPDATE ===");
+            LOGGER.info("Section 4: UPDATE");
             System.out.println("Owner phone updated   : " + ownerDAO.updatePhone(ownerId, "999-999-9999"));
             System.out.println("Pet weight updated    : " + petDAO.updateWeight(petId, 13.1));
             System.out.println("Vet phone updated     : " + vetDAO.updatePhone(vetId, "888-888-8888"));
@@ -105,12 +116,14 @@ public class Vet_app {
 
             // ---------- 5. MANAGING RESULT SETS ----------
             System.out.println("\n=== 5. RESULT SET MANAGEMENT ===");
+            LOGGER.info("Section 5: RESULT SET MANAGEMENT");
             ownerDAO.showOwnersScrollable();
 
             // ---------- 6. EXCEPTION HANDLING ----------
             System.out.println("\n=== 6. EXCEPTION HANDLING ===");
+            LOGGER.info("Section 6: EXCEPTION HANDLING");
 
-            // (a) no row found: not an exception, the DAO returns null
+            // (a) no row found: not an exception, the DAO returns null (and logs a WARN)
             Owner missing = ownerDAO.findById(999999);
             System.out.println("Owner 999999 -> " + (missing == null ? "not found (null)" : missing));
 
@@ -118,30 +131,31 @@ public class Vet_app {
             try {
                 ownerDAO.deleteOwner(ownerId);
             } catch (SQLIntegrityConstraintViolationException e) {
-                handleError("Delete owner that still has related rows", e);
+                ErrorHandler.handle("Delete owner that still has related rows", e);
             }
 
             // (c) inserting a child row for a parent that does not exist -> foreign key violation
             try {
                 petDAO.createPet(new Pet(999999, "Ghost", "Cat", "None", "Female", null, 3.0, "MC-GHOST"));
             } catch (SQLIntegrityConstraintViolationException e) {
-                handleError("Insert pet for an owner that does not exist", e);
+                ErrorHandler.handle("Insert pet for an owner that does not exist", e);
             }
 
             // (d) any other SQL problem (here: a column that is too long)
             try {
                 ownerDAO.updatePhone(ownerId, "1".repeat(100));
             } catch (SQLException e) {
-                handleError("Update owner phone with a value that is too long", e);
+                ErrorHandler.handle("Update owner phone with a value that is too long", e);
             }
 
         } catch (SQLException e) {
-            handleError("Database problem", e);
+            ErrorHandler.handle("Database problem", e);
         } catch (Exception e) {
-            System.err.println("[ERROR] Unexpected problem: " + e.getMessage());
+            LOGGER.error("Unexpected problem", e);
         } finally {
             // ---------- 7. DELETE (children first, parents last) ----------
             System.out.println("\n=== 7. DELETE / CLEAN UP ===");
+            LOGGER.info("Section 7: DELETE / CLEAN UP");
             try {
                 if (payId > 0)   System.out.println("Payment deleted     : " + payDAO.deletePayment(payId));
                 if (treatId > 0) System.out.println("Treatment deleted   : " + treatDAO.deleteTreatment(treatId));
@@ -154,16 +168,9 @@ public class Vet_app {
                 if (staffId > 0) System.out.println("Staff deleted       : " + staffDAO.deleteStaff(staffId));
                 if (roomId > 0)  System.out.println("Room deleted        : " + roomDAO.deleteRoom(roomId));
             } catch (SQLException e) {
-                handleError("Clean up", e);
+                ErrorHandler.handle("Clean up", e);
             }
+            LOGGER.info("Vet app finished");
         }
-    }
-
-    // Manage and log an exception (Module 1: printed to the error stream)
-    private static void handleError(String action, SQLException e) {
-        System.err.println("[ERROR] " + action);
-        System.err.println("        Message  : " + e.getMessage());
-        System.err.println("        SQLState : " + e.getSQLState());
-        System.err.println("        ErrorCode: " + e.getErrorCode());
     }
 }

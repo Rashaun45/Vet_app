@@ -6,8 +6,12 @@ import com.vet_clinic.vet_app.model.Vet;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class VetDAOJdbc implements VetDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(VetDAOJdbc.class);
 
     @Override
     public int createVet(Vet v) throws SQLException {
@@ -22,7 +26,9 @@ public class VetDAOJdbc implements VetDao {
             ps.setString(6, v.getEmail());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createVet", id);
+                return id;
             }
         }
     }
@@ -34,7 +40,12 @@ public class VetDAOJdbc implements VetDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, vetId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapVet(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", vetId);
+                    return mapVet(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", vetId);
+                return null;
             }
         }
     }
@@ -50,6 +61,7 @@ public class VetDAOJdbc implements VetDao {
                 while (rs.next()) list.add(mapVet(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "findBySpecialty", list.size());
         return list;
     }
 
@@ -62,6 +74,7 @@ public class VetDAOJdbc implements VetDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapVet(rs));
         }
+        LOGGER.debug("{} returned {} row(s)", "getAllVets", list.size());
         return list;
     }
 
@@ -72,7 +85,13 @@ public class VetDAOJdbc implements VetDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, phone);
             ps.setInt(2, vetId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "updatePhone", vetId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "updatePhone", vetId);
+            }
+            return changed;
         }
     }
 
@@ -82,7 +101,13 @@ public class VetDAOJdbc implements VetDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, vetId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deleteVet", vetId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deleteVet", vetId);
+            }
+            return changed;
         }
     }
 

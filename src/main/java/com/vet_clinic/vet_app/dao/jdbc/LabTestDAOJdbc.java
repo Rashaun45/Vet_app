@@ -6,9 +6,13 @@ import com.vet_clinic.vet_app.model.LabTest;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 // Works on the "test" table (named LabTest in Java so it is not confused with unit tests)
 public class LabTestDAOJdbc implements LabTestDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(LabTestDAOJdbc.class);
 
     @Override
     public int createTest(LabTest t) throws SQLException {
@@ -28,7 +32,9 @@ public class LabTestDAOJdbc implements LabTestDao {
             ps.setTimestamp(6, t.getOrderedAt());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createTest", id);
+                return id;
             }
         }
     }
@@ -40,7 +46,12 @@ public class LabTestDAOJdbc implements LabTestDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, testId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapTest(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", testId);
+                    return mapTest(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", testId);
+                return null;
             }
         }
     }
@@ -56,6 +67,7 @@ public class LabTestDAOJdbc implements LabTestDao {
                 while (rs.next()) list.add(mapTest(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "findByAppointmentId", list.size());
         return list;
     }
 
@@ -68,6 +80,7 @@ public class LabTestDAOJdbc implements LabTestDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapTest(rs));
         }
+        LOGGER.debug("{} returned {} row(s)", "getAllTests", list.size());
         return list;
     }
 
@@ -79,7 +92,13 @@ public class LabTestDAOJdbc implements LabTestDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, result);
             ps.setInt(2, testId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "recordResult", testId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "recordResult", testId);
+            }
+            return changed;
         }
     }
 
@@ -89,7 +108,13 @@ public class LabTestDAOJdbc implements LabTestDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, testId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deleteTest", testId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deleteTest", testId);
+            }
+            return changed;
         }
     }
 

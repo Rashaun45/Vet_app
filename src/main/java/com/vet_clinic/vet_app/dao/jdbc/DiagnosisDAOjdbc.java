@@ -6,8 +6,12 @@ import com.vet_clinic.vet_app.model.Diagnosis;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DiagnosisDAOjdbc implements DiagnosisDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(DiagnosisDAOjdbc.class);
 
     @Override
     public int createDiagnosis(Diagnosis d) throws SQLException {
@@ -23,7 +27,9 @@ public class DiagnosisDAOjdbc implements DiagnosisDao {
             ps.setTimestamp(6, d.getDiagnosedAt());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createDiagnosis", id);
+                return id;
             }
         }
     }
@@ -35,7 +41,12 @@ public class DiagnosisDAOjdbc implements DiagnosisDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, diagnosisId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapDiagnosis(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", diagnosisId);
+                    return mapDiagnosis(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", diagnosisId);
+                return null;
             }
         }
     }
@@ -51,6 +62,7 @@ public class DiagnosisDAOjdbc implements DiagnosisDao {
                 while (rs.next()) list.add(mapDiagnosis(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "findByAppointmentId", list.size());
         return list;
     }
 
@@ -63,6 +75,7 @@ public class DiagnosisDAOjdbc implements DiagnosisDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapDiagnosis(rs));
         }
+        LOGGER.debug("{} returned {} row(s)", "getAllDiagnoses", list.size());
         return list;
     }
 
@@ -73,7 +86,13 @@ public class DiagnosisDAOjdbc implements DiagnosisDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, notes);
             ps.setInt(2, diagnosisId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "updateNotes", diagnosisId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "updateNotes", diagnosisId);
+            }
+            return changed;
         }
     }
 
@@ -83,7 +102,13 @@ public class DiagnosisDAOjdbc implements DiagnosisDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, diagnosisId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deleteDiagnosis", diagnosisId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deleteDiagnosis", diagnosisId);
+            }
+            return changed;
         }
     }
 

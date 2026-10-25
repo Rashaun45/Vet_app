@@ -6,8 +6,12 @@ import com.vet_clinic.vet_app.model.Staff;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class StaffDAOJdbc implements StaffDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(StaffDAOJdbc.class);
 
     @Override
     public int createStaff(Staff s) throws SQLException {
@@ -21,7 +25,9 @@ public class StaffDAOJdbc implements StaffDao {
             ps.setString(5, s.getEmail());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createStaff", id);
+                return id;
             }
         }
     }
@@ -33,7 +39,12 @@ public class StaffDAOJdbc implements StaffDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, staffId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapStaff(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", staffId);
+                    return mapStaff(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", staffId);
+                return null;
             }
         }
     }
@@ -49,6 +60,7 @@ public class StaffDAOJdbc implements StaffDao {
                 while (rs.next()) list.add(mapStaff(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "findByRole", list.size());
         return list;
     }
 
@@ -61,6 +73,7 @@ public class StaffDAOJdbc implements StaffDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapStaff(rs));
         }
+        LOGGER.debug("{} returned {} row(s)", "getAllStaff", list.size());
         return list;
     }
 
@@ -71,7 +84,13 @@ public class StaffDAOJdbc implements StaffDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, role);
             ps.setInt(2, staffId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "updateRole", staffId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "updateRole", staffId);
+            }
+            return changed;
         }
     }
 
@@ -81,7 +100,13 @@ public class StaffDAOJdbc implements StaffDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, staffId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deleteStaff", staffId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deleteStaff", staffId);
+            }
+            return changed;
         }
     }
 

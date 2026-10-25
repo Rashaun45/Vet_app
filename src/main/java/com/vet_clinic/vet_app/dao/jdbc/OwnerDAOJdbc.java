@@ -6,8 +6,12 @@ import com.vet_clinic.vet_app.model.Owner;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class OwnerDAOJdbc implements OwnerDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(OwnerDAOJdbc.class);
 
     // INSERT - returns the generated owner_id
     @Override
@@ -22,7 +26,9 @@ public class OwnerDAOJdbc implements OwnerDao {
             ps.setString(5, o.getAddress());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createOwner", id);
+                return id;
             }
         }
     }
@@ -35,7 +41,12 @@ public class OwnerDAOJdbc implements OwnerDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, ownerId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapOwner(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", ownerId);
+                    return mapOwner(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", ownerId);
+                return null;
             }
         }
     }
@@ -52,6 +63,7 @@ public class OwnerDAOJdbc implements OwnerDao {
                 while (rs.next()) list.add(mapOwner(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "findByLastName", list.size());
         return list;
     }
 
@@ -65,6 +77,7 @@ public class OwnerDAOJdbc implements OwnerDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapOwner(rs));
         }
+        LOGGER.debug("{} returned {} row(s)", "getAllOwners", list.size());
         return list;
     }
 
@@ -76,7 +89,13 @@ public class OwnerDAOJdbc implements OwnerDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, phone);
             ps.setInt(2, ownerId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "updatePhone", ownerId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "updatePhone", ownerId);
+            }
+            return changed;
         }
     }
 
@@ -87,13 +106,20 @@ public class OwnerDAOJdbc implements OwnerDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, ownerId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deleteOwner", ownerId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deleteOwner", ownerId);
+            }
+            return changed;
         }
     }
 
     // MANAGING RESULT SETS - scrollable ResultSet + metadata
     @Override
     public void showOwnersScrollable() throws SQLException {
+        LOGGER.info("Showing owners with a scrollable ResultSet");
         String sql = "SELECT owner_id, first_name, last_name, phone FROM owner ORDER BY owner_id";
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql,

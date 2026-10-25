@@ -6,8 +6,12 @@ import com.vet_clinic.vet_app.model.Room;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class RoomDAOJdbc implements RoomDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(RoomDAOJdbc.class);
 
     @Override
     public int createRoom(Room r) throws SQLException {
@@ -19,7 +23,9 @@ public class RoomDAOJdbc implements RoomDao {
             ps.setString(3, r.getStatus());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createRoom", id);
+                return id;
             }
         }
     }
@@ -31,7 +37,12 @@ public class RoomDAOJdbc implements RoomDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, roomId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapRoom(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", roomId);
+                    return mapRoom(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", roomId);
+                return null;
             }
         }
     }
@@ -47,6 +58,7 @@ public class RoomDAOJdbc implements RoomDao {
                 while (rs.next()) list.add(mapRoom(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "findByStatus", list.size());
         return list;
     }
 
@@ -59,6 +71,7 @@ public class RoomDAOJdbc implements RoomDao {
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) list.add(mapRoom(rs));
         }
+        LOGGER.debug("{} returned {} row(s)", "getAllRooms", list.size());
         return list;
     }
 
@@ -69,7 +82,13 @@ public class RoomDAOJdbc implements RoomDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, roomId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "updateStatus", roomId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "updateStatus", roomId);
+            }
+            return changed;
         }
     }
 
@@ -79,7 +98,13 @@ public class RoomDAOJdbc implements RoomDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, roomId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deleteRoom", roomId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deleteRoom", roomId);
+            }
+            return changed;
         }
     }
 

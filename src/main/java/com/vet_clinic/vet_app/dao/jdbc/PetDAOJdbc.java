@@ -6,8 +6,12 @@ import com.vet_clinic.vet_app.model.Pet;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class PetDAOJdbc implements PetDao {
+
+    private static final Logger LOGGER = LogManager.getLogger(PetDAOJdbc.class);
 
     @Override
     public int createPet(Pet p) throws SQLException {
@@ -26,7 +30,9 @@ public class PetDAOJdbc implements PetDao {
             ps.setBoolean(9, p.isActive());
             ps.executeUpdate();
             try (ResultSet keys = ps.getGeneratedKeys()) {
-                return keys.next() ? keys.getInt(1) : -1;
+                int id = keys.next() ? keys.getInt(1) : -1;
+                LOGGER.info("{} succeeded, new id = {}", "createPet", id);
+                return id;
             }
         }
     }
@@ -38,7 +44,12 @@ public class PetDAOJdbc implements PetDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, petId);
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? mapPet(rs) : null;
+                if (rs.next()) {
+                    LOGGER.debug("{} found a row for id {}", "findById", petId);
+                    return mapPet(rs);
+                }
+                LOGGER.warn("{} found no row for id {}", "findById", petId);
+                return null;
             }
         }
     }
@@ -65,7 +76,13 @@ public class PetDAOJdbc implements PetDao {
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setDouble(1, weight);
             ps.setInt(2, petId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "updateWeight", petId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "updateWeight", petId);
+            }
+            return changed;
         }
     }
 
@@ -75,7 +92,13 @@ public class PetDAOJdbc implements PetDao {
         try (Connection con = DatabaseConnection.getConnection();
              PreparedStatement ps = con.prepareStatement(sql)) {
             ps.setInt(1, petId);
-            return ps.executeUpdate() > 0;
+            boolean changed = ps.executeUpdate() > 0;
+            if (changed) {
+                LOGGER.info("{} succeeded for id {}", "deletePet", petId);
+            } else {
+                LOGGER.warn("{} changed no rows, id {} not found", "deletePet", petId);
+            }
+            return changed;
         }
     }
 
@@ -89,6 +112,7 @@ public class PetDAOJdbc implements PetDao {
                 while (rs.next()) list.add(mapPet(rs));
             }
         }
+        LOGGER.debug("{} returned {} row(s)", "query", list.size());
         return list;
     }
 
