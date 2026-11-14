@@ -1,22 +1,26 @@
 package com.vet_clinic.vet_app.model;
 
 import jakarta.persistence.*;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "diagnosis")
-public class Diagnosis {
-
+public class Diagnosis implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "diagnosis_id")
     private int diagnosisId;
 
-    @Column(name = "appointment_id")
+    @Column(name = "appointment_id",insertable = false, updatable = false)
     private int appointmentId;
 
-    @Column(name = "vet_id")
+    @Column(name = "vet_id",insertable = false, updatable = false)
     private int vetId;
 
     @Column(name = "description")

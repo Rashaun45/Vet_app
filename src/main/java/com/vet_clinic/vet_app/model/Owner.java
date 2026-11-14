@@ -1,15 +1,19 @@
 package com.vet_clinic.vet_app.model;
 
 import jakarta.persistence.*;
+import java.io.Serial;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import org.hibernate.annotations.CreationTimestamp;
+import java.io.Serializable;
 
 /** Maps one row of the owner table. */
 @Entity
 @Table(name = "owner")
-public class Owner {
+public class Owner implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

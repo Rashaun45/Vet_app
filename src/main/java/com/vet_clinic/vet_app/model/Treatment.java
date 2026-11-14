@@ -1,10 +1,14 @@
 package com.vet_clinic.vet_app.model;
 
 import jakarta.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "treatment")
-public class Treatment {
+public class Treatment implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,10 +16,10 @@ public class Treatment {
     private int treatmentId;
 
     
-    @Column(name = "diagnosis_id")
+    @Column(name = "diagnosis_id",insertable = false, updatable = false)
     private int diagnosisId;
 
-    @Column(name = "appointment_id")
+    @Column(name = "appointment_id",insertable = false, updatable = false)
     private int appointmentId;
 
     @Column(name = "treatment_type")
@@ -30,7 +34,7 @@ public class Treatment {
     @Column(name = "duration")
     private String duration;
 
-    @Column(name = "administered_by")
+    @Column(name = "administered_by",insertable = false, updatable = false)
     private int administeredBy;
 
     @Column(name = "start_date")

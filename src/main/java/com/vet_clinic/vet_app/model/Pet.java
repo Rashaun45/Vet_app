@@ -1,22 +1,26 @@
 package com.vet_clinic.vet_app.model;
 
 import jakarta.persistence.*;
+import java.io.Serial;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
 /** Maps one row of the pet table. */
 @Entity
 @Table(name = "pet")
-public class Pet {
+public class Pet implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "pet_id")
     private int petId;
 
    
-    @Column(name = "owner_id")
+    @Column(name = "owner_id",insertable = false, updatable = false)
     private int ownerId;
 
     @Column(name = "name")
@@ -34,7 +38,7 @@ public class Pet {
     @Column(name = "date_of_birth")
     private Date dateOfBirth;
 
-    @Column(name = "weight")
+    @Column(name = "weight", columnDefinition = "decimal(8,2)")
     private double weight;
 
     @Column(name = "microchip_id")

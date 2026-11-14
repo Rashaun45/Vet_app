@@ -1,23 +1,27 @@
 package com.vet_clinic.vet_app.model;
 
 import jakarta.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "payment")
-public class Payment {
+public class Payment implements Serializable{
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payment_id")
     private int paymentId;
 
-    @Column(name = "appointment_id")
+   @Column(name = "appointment_id", insertable = false, updatable = false)
     private int appointmentId;
 
-    @Column(name = "owner_id")
+    @Column(name = "owner_id", insertable = false, updatable = false)
     private int ownerId;
 
-    @Column(name = "amount")
+    @Column(name = "amount", nullable = false, columnDefinition = "decimal(10,2)")
     private double amount;
 
     @Column(name = "payment_method")

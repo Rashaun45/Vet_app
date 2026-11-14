@@ -1,29 +1,34 @@
 package com.vet_clinic.vet_app.model;
 
 import jakarta.persistence.*;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.io.Serializable;
 
 
 @Entity
 @Table(name = "appointment_visit")
-public class AppointmentVisit {
-
+public class AppointmentVisit implements Serializable {
+    
+    @Serial
+    private static final long serialVersionUID = 1L;
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "appointment_id")
     private int appointmentId;
 
-    @Column(name = "pet_id")
+    @Column(name = "pet_id",insertable = false, updatable = false)
     private int petId;
 
-    @Column(name = "vet_id")
+    @Column(name = "vet_id",insertable = false, updatable = false)
     private int vetId;
 
-    @Column(name = "room_id")
+    @Column(name = "room_id",insertable = false, updatable = false)
     private int roomId;
 
-    @Column(name = "created_by")
+    @Column(name = "created_by",insertable = false, updatable = false)
     private int createdBy;
 
     @Column(name = "scheduled_at", nullable = false)

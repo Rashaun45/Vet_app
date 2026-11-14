@@ -1,30 +1,34 @@
 package com.vet_clinic.vet_app.model;
 
 import jakarta.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "test")  
-public class LabTest {
-
+public class LabTest implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "test_id")
     private int testId;
 
     
-    @Column(name = "appointment_id")
+    @Column(name = "appointment_id",insertable = false, updatable = false)
     private int appointmentId;
 
-    @Column(name = "diagnosis_id")
+    @Column(name = "diagnosis_id",insertable = false, updatable = false)
     private Integer diagnosisId;          // Integer (not int) because the column is optional/NULL
 
     @Column(name = "test_type")
     private String testType;
 
-    @Column(name = "ordered_by")
+    @Column(name = "ordered_by",insertable = false, updatable = false)
     private int orderedBy;
 
-    @Column(name = "performed_by")
+    @Column(name = "performed_by",insertable = false, updatable = false)
     private int performedBy;
 
     @Column(name = "result")
