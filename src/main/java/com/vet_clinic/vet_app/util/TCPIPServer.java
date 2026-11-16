@@ -21,8 +21,19 @@ import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Objects;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TCPIPServer {
+
+    // Must stay the FIRST thing in the class, before the LOGGER line and the DAO fields below.
+    // The client and the server are two separate programs, so each one writes to its own
+    // log files (logs/server.log) instead of both fighting over logs/vet_app.log.
+    static {
+        System.setProperty("log.name", "server");
+    }
+
+    private static final Logger LOGGER = LogManager.getLogger(TCPIPServer.class);
 
     // Objective 3: configure the network port
     private static final int SERVER_PORT = 5000;
@@ -39,53 +50,57 @@ public class TCPIPServer {
     private static final OwnerDao OWNER_DAO = new OwnerDAOJdbc();
 
     public static void main(String[] args) {
-        System.out.println("=== Vet Clinic Server ===");
+        LOGGER.info("=== Vet Clinic Server starting ===");
 
         InetAddress bindAddress;
         try {
             bindAddress = InetAddress.getByName(BIND_HOST);
         } catch (UnknownHostException e) {
-            System.err.println("Invalid bind host: " + BIND_HOST);
-            e.printStackTrace();
+            LOGGER.fatal("Invalid bind host {} - the server cannot start", BIND_HOST, e);
             return;
         }
 
-        HibernateUtil.getSessionFactory();
+        try {
+            HibernateUtil.getSessionFactory();
+        } catch (ExceptionInInitializerError e) {
+            LOGGER.fatal("Hibernate could not start - the server cannot continue", e);
+            return;
+        }
         Runtime.getRuntime().addShutdownHook(new Thread(HibernateUtil::shutdown));
 
         // Objective 2: TCP/IP server with ServerSocket
         // Objective 6: exception handling with try-with-resources
         try (ServerSocket serverSocket = new ServerSocket(SERVER_PORT, 50, bindAddress)) {
 
-            System.out.println("Server listening on " + bindAddress.getHostAddress() + ":" + SERVER_PORT);
+            LOGGER.info("Server listening on {}:{}", bindAddress.getHostAddress(), SERVER_PORT);
 
             while (true) {
-                System.out.println("Waiting for a client connection...");
+                LOGGER.debug("Waiting for a client connection...");
 
                 try (Socket clientSocket = serverSocket.accept();
                      ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream())) {
 
-                    System.out.println("Client connected from " + clientSocket.getRemoteSocketAddress());
+                    LOGGER.info("Client connected from {}", clientSocket.getRemoteSocketAddress());
 
                     // Objective 5: object streams
                     Object received = in.readObject();
                     handle(received);
 
+                    LOGGER.info("Finished with client {}", clientSocket.getRemoteSocketAddress());
+
                 } catch (ClassNotFoundException e) {
-                    System.err.println("ClassNotFoundException - client sent an unknown class");
-                    e.printStackTrace();
+                    LOGGER.error("The client sent an object of a class the server does not know", e);
                 } catch (SQLException e) {
-                    System.err.println("Database error while processing the object: " + e.getMessage());
+                    ErrorHandler.handle("Processing the received object", e);
                 } catch (IOException e) {
-                    System.err.println("I/O error while handling client: " + e.getMessage());
+                    LOGGER.error("I/O error while handling a client", e);
                 } catch (RuntimeException e) {
-                    System.err.println("Error while processing the object: " + e.getMessage());
+                    LOGGER.error("Unexpected error while processing the received object", e);
                 }
             }
 
         } catch (IOException e) {
-            System.err.println("Could not start server on port " + SERVER_PORT);
-            e.printStackTrace();
+            LOGGER.fatal("Could not start the server on port {}", SERVER_PORT, e);
         }
     }
 
@@ -100,19 +115,19 @@ public class TCPIPServer {
             processOwner(owner);
         } else {
             String type = received == null ? "null" : received.getClass().getName();
-            System.err.println("Received unexpected object type: " + type);
+            LOGGER.warn("Received an object of an unexpected type: {}", type);
         }
     }
 
     private static void processAppointment(AppointmentVisit a) throws SQLException {
-        System.out.println("Received: " + a);
+        LOGGER.info("Received: {}", a);
 
         if (a.getPetId() <= 0 || a.getVetId() <= 0 || a.getRoomId() <= 0 || a.getCreatedBy() <= 0) {
-            System.out.println("  -> REJECTED: pet, vet, room and staff ids are required.");
+            LOGGER.warn("REJECTED: pet, vet, room and staff ids are required.");
             return;
         }
         if (a.getScheduledAt() == null || a.getScheduledAt().before(new Timestamp(System.currentTimeMillis()))) {
-            System.out.println("  -> REJECTED: the appointment must be scheduled in the future.");
+            LOGGER.warn("REJECTED: the appointment must be scheduled in the future.");
             return;
         }
         if (isBlank(a.getStatus())) {
@@ -121,67 +136,67 @@ public class TCPIPServer {
 
         int hour = a.getScheduledAt().toLocalDateTime().getHour();
         if (hour < 8 || hour >= 18) {
-            System.out.println("  -> ALERT: outside normal clinic hours (08:00-18:00).");
+            LOGGER.warn("ALERT: outside normal clinic hours (08:00-18:00).");
         }
 
         int id = APPOINTMENT_DAO.createAppointment(a);
-        System.out.println("  -> Appointment booked with id " + id + " (saved with Hibernate)");
+        LOGGER.info("Appointment booked with id {} (saved with Hibernate)", id);
     }
 
     private static void processPayment(Payment p) throws SQLException {
-        System.out.println("Received: " + p);
+        LOGGER.info("Received: {}", p);
 
         if (p.getAmount() <= 0) {
-            System.out.println("  -> REJECTED: the amount must be greater than zero.");
+            LOGGER.warn("REJECTED: the amount must be greater than zero.");
             return;
         }
         if (isBlank(p.getPaymentMethod())) {
-            System.out.println("  -> REJECTED: a payment method is required.");
+            LOGGER.warn("REJECTED: a payment method is required.");
             return;
         }
         if (p.getAmount() > 5000) {
-            System.out.println("  -> ALERT: unusually large payment, please review.");
+            LOGGER.warn("ALERT: unusually large payment, please review.");
         }
 
         int id = PAYMENT_DAO.createPayment(p);
         if ("Paid".equalsIgnoreCase(p.getStatus())) {
             PAYMENT_DAO.markPaid(id);
-            System.out.println("  -> Payment " + id + " recorded and marked as paid (JDBC).");
-            System.out.println("  -> Owner " + p.getOwnerId() + " has now paid a total of "
-                    + PAYMENT_DAO.getTotalPaidByOwner(p.getOwnerId()));
+            LOGGER.info("Payment {} recorded and marked as paid (JDBC).", id);
+            LOGGER.info("Owner {} has now paid a total of {}",
+                    p.getOwnerId(), PAYMENT_DAO.getTotalPaidByOwner(p.getOwnerId()));
         } else {
-            System.out.println("  -> Payment " + id + " recorded with status " + p.getStatus() + " (JDBC).");
+            LOGGER.info("Payment {} recorded with status {} (JDBC).", id, p.getStatus());
         }
     }
 
     private static void processLabTest(LabTest t) throws SQLException {
-        System.out.println("Received: " + t);
+        LOGGER.info("Received: {}", t);
 
         if (t.getTestId() == 0) {
             if (isBlank(t.getTestType())) {
-                System.out.println("  -> REJECTED: a test type is required.");
+                LOGGER.warn("REJECTED: a test type is required.");
                 return;
             }
             int id = LAB_TEST_DAO.createTest(t);
-            System.out.println("  -> New test ordered with id " + id + " (saved with Hibernate)");
+            LOGGER.info("New test ordered with id {} (saved with Hibernate)", id);
         } else if (isBlank(t.getResult())) {
-            System.out.println("  -> REJECTED: no result supplied for test " + t.getTestId());
+            LOGGER.warn("REJECTED: no result supplied for test {}", t.getTestId());
         } else if (LAB_TEST_DAO.recordResult(t.getTestId(), t.getResult())) {
-            System.out.println("  -> Result recorded for test " + t.getTestId() + " and marked complete (Hibernate).");
+            LOGGER.info("Result recorded for test {} and marked complete (Hibernate).", t.getTestId());
         } else {
-            System.out.println("  -> REJECTED: test " + t.getTestId() + " does not exist.");
+            LOGGER.warn("REJECTED: test {} does not exist.", t.getTestId());
         }
     }
 
     private static void processOwner(Owner o) throws SQLException {
-        System.out.println("Received: " + o);
+        LOGGER.info("Received: {}", o);
 
         if (isBlank(o.getFirstName()) || isBlank(o.getLastName())) {
-            System.out.println("  -> REJECTED: first and last name are required.");
+            LOGGER.warn("REJECTED: first and last name are required.");
             return;
         }
         if (!isBlank(o.getEmail()) && !o.getEmail().contains("@")) {
-            System.out.println("  -> REJECTED: the email address is not valid.");
+            LOGGER.warn("REJECTED: the email address is not valid.");
             return;
         }
 
@@ -189,12 +204,12 @@ public class TCPIPServer {
                 .anyMatch(x -> x.getFirstName().equalsIgnoreCase(o.getFirstName())
                         && Objects.equals(x.getPhone(), o.getPhone()));
         if (duplicate) {
-            System.out.println("  -> REJECTED: an owner with the same name and phone already exists.");
+            LOGGER.warn("REJECTED: an owner with the same name and phone already exists.");
             return;
         }
 
         int id = OWNER_DAO.createOwner(o);
-        System.out.println("  -> Owner registered with id " + id + " (JDBC)");
+        LOGGER.info("Owner registered with id {} (JDBC)", id);
     }
 
     private static boolean isBlank(String s) {
